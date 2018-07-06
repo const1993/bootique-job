@@ -40,7 +40,7 @@ public class ScheduleCommandIT {
     @Test
     public void testScheduleCommand_AllJobs() {
         BQRuntime runtime = testFactory.app()
-                .args("--schedule", "-c", "classpath:io/bootique/job/fixture/scheduler_test_command.yml")
+                .args("--schedule", "-c", "classpath:io/bootique/job/fixture/scheduler_test_command1.yml")
                 .module(JobModule.class)
                 .module(b -> JobModule.extend(b).addJob(ScheduledJob1.class).addJob(ScheduledJob2.class))
                 .createRuntime();

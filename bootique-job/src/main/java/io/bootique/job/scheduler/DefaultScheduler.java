@@ -45,6 +45,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -168,9 +169,13 @@ public class DefaultScheduler implements Scheduler {
 
     private Schedule createSchedule(TriggerDescriptor tc) {
         String cron = tc.getCron();
-        long fixedDelayMs = tc.getFixedDelayMs();
-        long fixedRateMs = tc.getFixedRateMs();
-        long initialDelayMs = tc.getInitialDelayMs();
+        String fixedDelay = tc.getFixedDelay();
+        String fixedRate = tc.getFixedRate();
+        String initialDelay = tc.getInitialDelay();
+
+        long fixedDelayMs = fixedDelay != null ? getMsFromStringDelay(fixedDelay) : tc.getFixedDelayMs();
+        long fixedRateMs = fixedRate != null ? getMsFromStringDelay(fixedRate) : tc.getFixedRateMs();
+        long initialDelayMs = initialDelay != null ? getMsFromStringDelay(initialDelay) : tc.getInitialDelayMs();
 
         if (cron != null) {
             return Schedule.cron(cron);
@@ -182,6 +187,19 @@ public class DefaultScheduler implements Scheduler {
 
         throw new BootiqueException(1,
                 "Trigger is misconfigured. Either of 'cron', 'fixedDelayMs', 'fixedRateMs' must be set.");
+    }
+
+    private long getMsFromStringDelay(String delay) {
+        String[] strings = delay.split(" ");
+        if (strings.length != 2) {
+            return 0;
+        }
+
+        TimeUnit timeUnit = TimeUnit.valueOf(strings[1].toUpperCase());
+        if (timeUnit == null) {
+            return 0;
+        }
+        return timeUnit.toMillis(Long.valueOf(strings[0]));
     }
 
     @Override
